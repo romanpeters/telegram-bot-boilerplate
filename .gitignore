@@ -1,4 +1,6 @@
-bot/redacted.py
+redacted.py
+sqlite.db
+bot/templates/commands.txt
 .idea/
 __pycache__/
 venv/
