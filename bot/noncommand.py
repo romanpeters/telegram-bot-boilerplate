@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Bot features that aren't commands
+"""
 import logging
 from telegram import InlineQueryResultArticle
 

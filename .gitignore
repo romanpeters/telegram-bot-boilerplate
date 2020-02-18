@@ -1,4 +1,5 @@
-redacted.py
+bot/redacted.py
 .idea/
 __pycache__/
 venv/
+
