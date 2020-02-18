@@ -4,4 +4,4 @@ ADD . /bot
 WORKDIR /bot
 RUN pip install --no-cache-dir -U -r requirements.txt
 
-CMD ["python", "-u", "bot.py"]
+CMD ["python", "-u", "run.py"]

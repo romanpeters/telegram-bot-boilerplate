@@ -1,0 +1,8 @@
+version: '3'
+services:
+  url:
+     image: bot:latest
+     container_name: bot
+     restart: always
+#     volumes:
+#       - /var/docker/bot:/bot
