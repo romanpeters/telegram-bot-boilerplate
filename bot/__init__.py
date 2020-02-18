@@ -8,7 +8,7 @@ import os
 import logging
 from telegram.ext import Updater, InlineQueryHandler, CommandHandler, MessageHandler, Filters
 
-from bot import noncommand
+from bot import features
 from bot.commands import command_list
 
 # Enable logging
@@ -35,8 +35,8 @@ def run(bot_token):
     [dp.add_handler(CommandHandler(c.__name__, c)) for c in command_list]
 
     # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, noncommand.echo))
-    dp.add_handler(InlineQueryHandler(noncommand.inlinequery))
+    dp.add_handler(MessageHandler(Filters.text, features.echo))
+    dp.add_handler(InlineQueryHandler(features.inlinequery))
 
     # log all errors
     dp.add_error_handler(error)
