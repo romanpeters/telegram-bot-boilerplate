@@ -4,7 +4,7 @@
 """
 Bot commands
 """
-from bot import registry
+from bot.registry import Command
 
 import logging
 import config
@@ -12,7 +12,7 @@ import config
 logging.basicConfig(format=config.LOG_FORMAT, level=config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-command = registry.Command()
+command = Command()
 
 
 @command.register(command=["start"], description="Show commands")

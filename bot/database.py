@@ -31,6 +31,7 @@ class User(SQLAlchemyBase):
     username = sa.Column(sa.String(32))
     first_name = sa.Column(sa.String(32))
     last_name = sa.Column(sa.String(32))
+    rank = sa.Column(sa.Integer)
     chats = relationship('Chat',
                          secondary=chat_members,
                          back_populates='users')
@@ -38,6 +39,17 @@ class User(SQLAlchemyBase):
     def __repr__(self):
         return f"<User(user_id='{self.user_id}', username='{self.username}', first_name='{self.first_name}', " \
                f"last_name='{self.last_name}', chats='{self.chats}')>"
+
+
+def user_to_db(user_id, chat_id, username=None, first_name=None, last_name=None, rank=None):
+    session = Session()
+    entry = User(user_id=user_id, username=username, first_name=first_name, last_name=last_name)
+    if rank:
+        entry.rank = rank
+    entry.chats.append(Chat(chat_id=chat_id))
+    session.merge(entry)
+    session.commit()
+
 
 
 SQLAlchemyBase.metadata.create_all(engine)
