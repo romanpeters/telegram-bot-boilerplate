@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 message_text = registry.MessageText()  # decorator for message actions
 
 
-@message_text.register(regex=r"^.*?.*$", access_level=ADMIN)  # regex match if '?' in message
+@message_text.register(regex=r"^.*?.*$", access=ADMIN)  # regex match if '?' in message
 def echo(update, context):
     """Echo the user message."""
     update.message.reply_text(update.message.text)
