@@ -13,7 +13,7 @@ import bot.commands
 import bot.features
 from bot import registry
 
-logging.basicConfig(format=config.LOG_FORMAT, level=logging.DEBUG)
+logging.basicConfig(format=config.LOG_FORMAT, level=config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
@@ -33,15 +33,17 @@ def run():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
+    # on different commands
     [dp.add_handler(CommandHandler(command=key, callback=value["callback"])) for key, value in registry.Command.all.items()]
 
-    # on noncommand i.e message - echo the message on Telegram
-    [dp.add_handler(MessageHandler(filters=Filters.text, callback=value["callback"])) for key, value in registry.MessageText.all.items()]
+    # message text actions
+    [dp.add_handler(MessageHandler(filters=Filters.regex(value["regex"]), callback=value["callback"])) for value in registry.MessageText.all.values()]
 
-    [dp.add_handler(InlineQueryHandler(pattern=key, callback=value["callback"])) for key, value in registry.InlineQuery.all.items()]
+    # on inline queries
+    [dp.add_handler(InlineQueryHandler(pattern=value["pattern"], callback=value["callback"])) for value in registry.InlineQuery.all.values()]
 
-    [dp.add_handler(CallbackQueryHandler(pattern=key, callback=value["callback"])) for key, value in registry.CallbackQuery.all.items()]
+    # on callback queries
+    [dp.add_handler(CallbackQueryHandler(pattern=value["pattern"], callback=value["callback"])) for value in registry.CallbackQuery.all.values()]
 
     # log all errors
     dp.add_error_handler(error)
@@ -59,11 +61,11 @@ def run():
     logger.info(f"Commands {list(registry.Command.all.keys())}")
     logger.info(f"MessageTexts {list(registry.MessageText.all.keys())}")
     logger.info(f"InlineQueries {list(registry.InlineQuery.all.keys())}")
-    logger.info(f"Callback {list(registry.CallbackQuery.all.keys())}")
-
-
+    logger.info(f"Callbacks {list(registry.CallbackQuery.all.keys())}")
 
     # Start the Bot
-    print("Listening...")
+
     updater.start_polling()
+    logger.info("BOT IS ONLINE!")
     updater.idle()
+
