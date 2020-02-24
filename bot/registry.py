@@ -9,70 +9,99 @@ import config
 logging.basicConfig(format=config.LOG_FORMAT, level=config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-ADMIN, WHITELISTED, ANYONE = range(0, 3)
+NOBODY, ADMIN, WHITELISTED, ANYBODY = range(0, 4)
+chat_cache = {}
 
 
-def check_rank(user) -> int:
+def check_rank(chat_id: int, user) -> int:
     """Returns the user's rank"""
     if f"@{user.username}" in config.ADMINS:
         return ADMIN
+    elif chat_id in config.WHITELIST_CHATS:
+        return WHITELISTED
     else:
         session = db.Session()
         entry = session.query(db.User).filter_by(user_id=user.id).first()
         session.close()
         if entry:
             return entry.rank
-    return ANYONE
+    return ANYBODY
+
+
+def add_user(chat_id, user) -> bool:
+    """Adds new users to db"""
+    if chat_cache.get(chat_id):
+        if user.id in chat_cache[chat_id]:
+            logger.debug(f"Already seen user with id {user.id}")
+            return False # already added to db
+    else:
+        chat_cache[chat_id]: list = []
+    logger.debug(f"New user with id {user.id}")
+    rank = check_rank(chat_id, user)
+    db.user_to_db(user_id=user.id, chat_id=chat_id, username=user.username,
+                  first_name=user.first_name, last_name=user.last_name, rank=rank)
+    chat_cache[chat_id].append(user.id)
+    return True
 
 
 class BaseRegistrator(object):
     """
     Abstract base class
     """
+
     def register(self, **options):
         """
         Decorator
         kwargs: registration options
         """
 
-        def on_init(func):
+        def decorator(func):
             """
             On decoration
             func: function being decorated
             """
-            # register
-            self.add_to_all(func, **options)
+            # register the wrapped function
+            self.add_to_all(self.wrapper(func, **options), **options)
 
-            @wraps(func)
-            def on_call(update, context, *args, **kwargs):
-                """
-                On function call
-                """
-                if options.get('access') in [ADMIN, WHITELISTED]:
-                    # check access level
-                    if check_rank(update.effective_user) <= options['access']:
-                        return func(update, context, *args, **kwargs)
-                    else:
-                        self.access_denied(update, context, func)
-            return on_call
-        return on_init
+        return decorator
+
+    def wrapper(self, func, **options):
+        """Wraps around a function to perform actions when it's called"""
+        @wraps(func)
+        def on_call(update, context):
+            user = update.effective_user
+            chat_id = update.message.chat_id
+
+            # Add to db
+            add_user(chat_id, user)
+
+            # check access level
+            if options.get('access', ANYBODY) in [NOBODY, ADMIN, WHITELISTED]:
+                if check_rank(user) <= options['access']:
+                    return func(update, context)
+                else:
+                    self.access_denied(update, context)
+            else:
+                return func(update, context)
+
+        return on_call
 
     def add_to_all(self, func, **kwargs):
         raise NotImplementedError  # should be inherited
 
-    def access_denied(self, update, context, func):
-        logger.warning(f"{update.effective_user} does not have the required rank to execute {func.__name__}")
+    def access_denied(self, update, context):
+        logger.warning(f"{update.effective_user} does not have the required rank to execute")
 
 
 class Command(BaseRegistrator):
     all = {}  # {command: {"callback": func, **options}}
 
-    def register(self, command: list, description: str, access: int = ANYONE, **kwargs):
+    def register(self, command: list, description: str, access: int = ANYBODY, **kwargs):
         """Decorator used to register a command"""
         # This method is only used to specify parameters and then call the parent method
         return super().register(command=command, description=description, access=access, **kwargs)
 
-    def add_to_all(self, func, **kwargs):
+    def add_to_all(self, wrapped_func, **kwargs):
         commands: list = kwargs["command"]
 
         # options is the kwargs given in the decorator + callback
@@ -80,7 +109,7 @@ class Command(BaseRegistrator):
 
         # a single function can have multiple commands
         for c in commands:
-            options["callback"]: object = func
+            options["callback"]: object = wrapped_func
             self.all[c]: dict = options
 
 
@@ -92,12 +121,12 @@ class MessageText(BaseRegistrator):
         # This method is only used to specify parameters and then call the parent method
         return super().register(regex=regex, access=access, **kwargs)
 
-    def add_to_all(self, func, **kwargs):
+    def add_to_all(self, wrapped_func, **kwargs):
         # options is the kwargs given in the decorator + callback
         options = kwargs.copy()
-        options["callback"]: object = func
+        options["callback"]: object = wrapped_func
 
-        self.all[func.__name__]: dict = options
+        self.all[wrapped_func.__name__]: dict = options
 
 
 class InlineQuery(BaseRegistrator):
@@ -108,12 +137,12 @@ class InlineQuery(BaseRegistrator):
         # This method is only used to specify parameters and then call the parent method
         return super().register(pattern=pattern, access=access, **kwargs)
 
-    def add_to_all(self, func, **kwargs):
+    def add_to_all(self, wrapped_func, **kwargs):
         # options is the kwargs given in the decorator + callback
         options = kwargs.copy()
-        options["callback"]: object = func
+        options["callback"]: object = wrapped_func
 
-        self.all[func.__name__]: dict = options
+        self.all[wrapped_func.__name__]: dict = options
 
 
 class CallbackQuery(BaseRegistrator):
@@ -124,10 +153,12 @@ class CallbackQuery(BaseRegistrator):
         # This method is only used to specify parameters and then call the parent method
         return super().register(callback_data=callback_data, access=access, **kwargs)
 
-    def add_to_all(self, func, **kwargs):
+    def add_to_all(self, wrapped_func, **kwargs):
         # options is the kwargs given in the decorator + callback
         options = kwargs.copy()
-        options["callback"]: object = func
+        options["callback"]: object = wrapped_func
 
-        self.all[func.__name__]: dict = options
+        self.all[wrapped_func.__name__]: dict = options
+
+
 

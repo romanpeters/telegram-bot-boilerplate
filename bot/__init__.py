@@ -66,6 +66,6 @@ def run():
     # Start the Bot
 
     updater.start_polling()
-    logger.info("BOT IS ONLINE!")
+    logger.info("~BOT IS ONLINE!~")
     updater.idle()
 

@@ -4,7 +4,6 @@
 Bot features that aren't commands
 """
 import logging
-from telegram import InlineQueryResultArticle
 from bot import registry
 from bot.registry import ADMIN, WHITELISTED
 import config
