@@ -7,6 +7,9 @@ Bot commands
 from bot import registry
 
 import logging
+import config
+
+logging.basicConfig(format=config.LOG_FORMAT, level=config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 command = registry.Command()
