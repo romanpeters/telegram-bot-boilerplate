@@ -15,3 +15,11 @@ def boop(update, context):
     """Boops if you beep, but only if you're whitelisted"""
     update.message.reply_text("boop")
 ```
+
+### Quick start
+1. Add your Telegram API key to `config.py`.
+1. Run these commands:
+```
+$ docker build . -t bot:latest
+$ docker-compose up
+```
