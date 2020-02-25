@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 command = Command()
 
 
-@command.register(command="start", description="Show commands")
+@command.register(command=["start"], description="Show commands")
 def start(update, context):
     with open("bot/templates/commands.txt", "r") as f:
         text = f.read()

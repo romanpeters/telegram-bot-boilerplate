@@ -34,7 +34,11 @@ def run():
     dp = updater.dispatcher
 
     # on different commands
-    [dp.add_handler(CommandHandler(command=key, callback=value["callback"])) for key, value in registry.Command.all.items()]
+    for value in registry.Command.all.values():
+        dp.add_handler(CommandHandler(command=value["command"], callback=value["callback"]))
+        if value.get("alt_commands"):  # add alternative commands for the same function
+            for command in value["alt_commands"]:
+                dp.add_handler(CommandHandler(command=command, callback=value["callback"]))
 
     # message text actions
     [dp.add_handler(MessageHandler(filters=Filters.regex(value["regex"]), callback=value["callback"])) for value in registry.MessageText.all.values()]
@@ -49,7 +53,7 @@ def run():
     dp.add_error_handler(error)
 
     # write documentation
-    man = "\n".join([f"/{key} - {value['description']}" for key, value in registry.Command.all.items()])
+    man = "\n".join([f"/{value['command']} - {value['description']}" for value in registry.Command.all.values()])
 
     # Ensure bot/templates
     template_dir = "bot/templates"
