@@ -20,3 +20,5 @@ def start(update, context):
     with open("bot/templates/commands.txt", "r") as f:
         text = f.read()
     update.message.reply_text(text)
+
+

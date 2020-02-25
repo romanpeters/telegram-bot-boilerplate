@@ -53,7 +53,7 @@ def run():
     dp.add_error_handler(error)
 
     # write documentation
-    man = "\n".join([f"/{value['command']} - {value['description']}" for value in registry.Command.all.values()])
+    man = "\n".join([f"/{value['command']} - {value['description']}" for value in registry.Command.all.values() if not value["hidden"]])
 
     # Ensure bot/templates
     template_dir = "bot/templates"

@@ -99,17 +99,19 @@ class BaseRegistrator(object):
 class Command(BaseRegistrator):
     all = {}  # {command: {"callback": func, **options}}
 
-    def register(self, command: str, description: str, access: int = ANYBODY, alt_commands: list = None, **kwargs):
+    def register(self, command: str, description: str,  alt_commands: list = None,
+                 access: int = ANYBODY, hidden=False, **kwargs):
         """Decorator used to register a command"""
         # This method is only used to specify parameters and then call the parent method
         alt_commands = alt_commands if alt_commands else []
-        return super().register(command=command, description=description, access=access, alt_commands=alt_commands, **kwargs)
+        return super().register(command=command, description=description, alt_commands=alt_commands,
+                                access=access, hidden=hidden, **kwargs)
 
 
 class MessageText(BaseRegistrator):
     all = {}  # {pattern: {"callback": func, **options}}
 
-    def register(self, regex: str, access=None, **kwargs):
+    def register(self, regex: str, access: int = ANYBODY, hidden=False, **kwargs):
         """Decorator used to register a text action"""
         # This method is only used to specify parameters and then call the parent method
         return super().register(regex=regex, access=access, **kwargs)
@@ -118,7 +120,7 @@ class MessageText(BaseRegistrator):
 class InlineQuery(BaseRegistrator):
     all = {}  # {pattern: {"callback": func, **options}}
 
-    def register(self, pattern: str, access=None, **kwargs):
+    def register(self, pattern: str, access: int = ANYBODY, hidden=False, **kwargs):
         """Decorator used to register an inline query"""
         # This method is only used to specify parameters and then call the parent method
         return super().register(pattern=pattern, access=access, **kwargs)
@@ -127,7 +129,7 @@ class InlineQuery(BaseRegistrator):
 class CallbackQuery(BaseRegistrator):
     all = {}  # {callback_data: {"callback": func, **options}}
 
-    def register(self, callback_data: str, access=None, **kwargs):
+    def register(self, callback_data: str, access:int = ANYBODY, hidden=False, **kwargs):
         """Decorator used to register a callback"""
         # This method is only used to specify parameters and then call the parent method
         return super().register(callback_data=callback_data, access=access, **kwargs)
