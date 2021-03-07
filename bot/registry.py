@@ -77,7 +77,7 @@ class BaseRegistrator(object):
 
             # check access level
             if options.get('access', ANYBODY) in [NOBODY, ADMIN, WHITELISTED]:
-                if check_rank(user) <= options['access']:
+                if check_rank(chat_id, user) <= options['access']:
                     return func(update, context)
                 else:
                     self.access_denied(update, context)
